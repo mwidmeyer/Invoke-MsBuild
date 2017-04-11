@@ -39,9 +39,9 @@ $buildResult = Invoke-MsBuild -Path "C:\Some Folder\MySolution.sln"
 
 if ($buildResult.BuildSucceeded -eq $true)
 { Write-Host "Build completed successfully." }
-elseif ($buildResult.BuildSucceeded -eq $false)
+else if ($buildResult.BuildSucceeded -eq $false)
 { Write-Host "Build failed. Check the build log file $($buildResult.BuildLogFilePath) for errors." }
-elseif ($buildResult.BuildSucceeded -eq $null)
+else if ($buildResult.BuildSucceeded -eq $null)
 { Write-Host "Unsure if build passed or failed: $($buildResult.Message)" }
 ```
 
