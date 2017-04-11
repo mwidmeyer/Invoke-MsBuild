@@ -9,9 +9,6 @@
 	[string] $GitHubAccessToken
 )
 
-# Set to True when testing the script to prevent actual publishing to PowerShell Gallery, and to create a Draft of the GitHub Release instead of a published Release.
-$isTestingThisScript = $false
-
 $THIS_SCRIPTS_DIRECTORY = Split-Path $script:MyInvocation.MyCommand.Path
 $helperScriptsDirectory = Join-Path -Path $THIS_SCRIPTS_DIRECTORY -ChildPath 'HelperScripts'
 $commonFunctionsScriptFilePath = Join-Path -Path $helperScriptsDirectory -ChildPath 'CommonFunctions.ps1'
@@ -95,28 +92,18 @@ Replace-TextInFile -filePath $manifestFilePath -textToReplace $currentManifestVe
 Replace-TextInFile -filePath $manifestFilePath -textToReplace $currentManifestReleaseNotesLine -replacementText $newManifestReleaseNotesLine
 
 # Publish the new version of the module to the PowerShell Gallery.
-Write-Output "Publishing new NuGet package to the PowerShell Gallery..."
-if (!$isTestingThisScript)
-{
-	Publish-Module -Path $moduleDirectoryPath -NuGetApiKey $PowerShellGalleryNuGetApiKey
-
-	$powerShellGalleryNuGetPackageExpectedUrl = "https://www.powershellgallery.com/packages/Invoke-MsBuild/$newVersionNumber"
-	Write-Output "PowerShell Gallery NuGet Package has been published. View it at:  $powerShellGalleryNuGetPackageExpectedUrl"
-}
+Publish-Module -Path $moduleDirectoryPath -NuGetApiKey $PowerShellGalleryNuGetApiKey
 
 # Publish the new version of the module to GitHub.
-$versionNumberIsAPreReleaseVersion = $newVersionNumber -match '-+|[a-zA-Z]+' # (e.g. 1.2.3-alpha). i.e. contains a dash or letters.
 $gitHubReleaseParameters = 
 @{
-	GitHubUsername = 'deadlydog'
-	GitHubRepositoryName = 'Invoke-MsBuild'
+	GitHubUserAndRepository = 'deadlydog/Invoke-MsBuild'
 	GitHubAccessToken = $GitHubAccessToken
 	ReleaseName = "Invoke-MsBuild v" + $newVersionNumber
 	TagName = "v" + $newVersionNumber
 	ReleaseNotes = $newReleaseNotes
 	ArtifactFilePaths = [string[]]@($scriptFilePath, $manifestFilePath)
-	IsPreRelease = $versionNumberIsAPreReleaseVersion
-	IsDraft = $isTestingThisScript
+	IsPreRelease = $newVersionNumber -match '-+|[a-zA-Z]+'	# Assume true when matches semver prerelease versioning (e.g. 1.2.3-alpha). i.e. contains a dash or letters.
+	IsDraft = $false
 }
-Write-Output "Creating new GitHub release..."
-New-GitHubRelease @gitHubReleaseParameters -InformationAction Continue
+New-GitHubRelease @gitHubReleaseParameters
