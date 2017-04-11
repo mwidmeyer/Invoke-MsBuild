@@ -676,4 +676,4 @@ function Get-CommonVisualStudioDirectoryPath
 	return $visualStudioDirectoryPath 
 }
 
-Export-ModuleMember -Cmdlet Invoke-MsBuild
+Export-ModuleMember -Function Invoke-MsBuild
